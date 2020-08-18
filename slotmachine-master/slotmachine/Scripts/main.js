@@ -1,22 +1,14 @@
 ﻿/// <reference path="jquery.js" />
-var playerMoney = 1000;
-var winnings = 0;
-var jackpot = 5000;
-var turn = 0;
-var playerBet = 0;
-var winNumber = 0;
-var lossNumber = 0;
-var spinResult;
-var fruits = "";
-var winRatio = 0;
-var grapes = 0;
-var bananas = 0;
-var oranges = 0;
-var cherries = 0;
-var bars = 0;
-var bells = 0;
-var sevens = 0;
-var blanks = 0;
+let IMAGE_HEIGHT = 64;
+let IMAGE_TOP_MARGIN = 5;
+let IMAGE_BOTTOM_MARGIN = 5;
+let SLOT_SEPARATOR_HEIGHT = 2
+let SLOT_HEIGHT = IMAGE_HEIGHT + IMAGE_TOP_MARGIN + IMAGE_BOTTOM_MARGIN + SLOT_SEPARATOR_HEIGHT; // how many pixels one slot image takes
+let RUNTIME = 3000; // how long all slots spin before starting countdown
+let SPINTIME = 1000; // how long each slot spins at minimum
+let ITEM_COUNT = 6 // item count in slots
+let SLOT_SPEED = 15; // how many pixels per second slots roll
+let DRAW_OFFSET = 45 // how much draw offset in slot display from top
 
 /* Utility function to show Player Stats */
 function showPlayerStats()
@@ -58,8 +50,8 @@ function resetAll() {
 /* Check to see if the player won the jackpot */
 function checkJackPot() {
     /* compare two random values */
-    var jackPotTry = Math.floor(Math.random() * 51 + 1);
-    var jackPotWin = Math.floor(Math.random() * 51 + 1);
+    let jackPotTry = Math.floor(Math.random() * 51 + 1);
+    let jackPotWin = Math.floor(Math.random() * 51 + 1);
     if (jackPotTry == jackPotWin) {
         alert("You Won the $" + jackpot + " Jackpot!!");
         playerMoney += jackpot;
@@ -96,10 +88,10 @@ function checkRange(value, lowerBounds, upperBounds) {
 /* When this function is called it determines the betLine results.
 e.g. Bar - Orange - Banana */
 function Reels() {
-    var betLine = [" ", " ", " "];
-    var outCome = [0, 0, 0];
+    let betLine = [" ", " ", " "];
+    let outCome = [0, 0, 0];
 
-    for (var spin = 0; spin < 3; spin++) {
+    for (let spin = 0; spin < 3; spin++) {
         outCome[spin] = Math.floor((Math.random() * 65) + 1);
         switch (outCome[spin]) {
             case checkRange(outCome[spin], 1, 27):  // 41.5% probability

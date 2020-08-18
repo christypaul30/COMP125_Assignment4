@@ -1,57 +1,50 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-    meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
 
   <meta name="interface" content="desktop" />
 
-  <title>Slots</title>
+  <title>Slot Machine</title>
 
   <link href='http://fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'/>
   <link type="text/css" rel="stylesheet" href="css/reset.css" />
   <link type="text/css" rel="stylesheet" href="css/slot.css" />
-  
 </head>
 <body>
-    <div>
+    <div id="viewport">
+        <div id="container">
+          <div id="header">
         <h1>Slot Machine</h1>
-        <div>
-            <h2>Player Statistics</h2>
-            <hr />
-            <ul id="playerStats">
-                <li id="jackpot">Jackpot: 500</li>
-                <li id="playerMoney">Player Money: 1000</li>
-                <li id="playerTurn">Turn: 0</li>
-                <li id="playerWins">Wins: 0</li>
-                <li id="playerLosses">Losses: 0</li>
-                <li id="playerWinRatio">Win Ratio: 0%</li>
-            </ul>
-            <hr />
+        <h3>Play and Win</h3>
+          </div>
+          <div id="reels">
+        <canvas id="canvas1" width="70" height="300"></canvas>
+        <canvas id="canvas2" width="70" height="300"></canvas>
+        <canvas id="canvas3" width="70" height="300"></canvas>
+        <div id="overlay">
+          <div id="winline"></div>
         </div>
-
-        <div id="betEntry">
-
-            <p>Place Your Bet Here</p>
-            <input id="playerBet" name="points" value="10">
-            <hr />
+        <div id="results">
+          <div id="score">
+            <span id="multiplier">0</span> x <img src="img/gold-64.png"/>
+          </div>
+          <div id="status"></div>
         </div>
-
-
-        <button id="spinButton">Spin!</button>
-    </div>
-
-    <div id="result">
-        <h2>Spin Result</h2>
-        <hr />
-        <p></p>
-    </div>
-    <hr />
-    <div id="winOrLose">
-        <p></p>
-    </div>
+          </div>
+          <div id="buttons">
+          <div id="play" class="button button-default">Play</div>	
+          </div>
+         <div class="">
+         <button id="restart" class="button button-default bottom_btn">Restart</button>
+         <!-- <button class="button button-default bottom_btn1">Quit</button> -->
+         </div>
+        </div>
+    
+      </div>
 
 
     <!-- JavaScript Section -->
