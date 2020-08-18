@@ -1,5 +1,4 @@
-﻿/// <reference path="jquery.js" />
-let IMAGE_HEIGHT = 64;
+﻿let IMAGE_HEIGHT = 64;
 let IMAGE_TOP_MARGIN = 5;
 let IMAGE_BOTTOM_MARGIN = 5;
 let SLOT_SEPARATOR_HEIGHT = 2
@@ -10,218 +9,349 @@ let ITEM_COUNT = 6 // item count in slots
 let SLOT_SPEED = 15; // how many pixels per second slots roll
 let DRAW_OFFSET = 45 // how much draw offset in slot display from top
 
-/* Utility function to show Player Stats */
-function showPlayerStats()
-{
-    winRatio = winNumber / turn;
-    $("#jackpot").text("Jackpot: " + jackpot);
-    $("#playerMoney").text("Player Money: " + playerMoney);
-    $("#playerTurn").text("Turn: " + turn);
-    $("#playerWins").text("Wins: " + winNumber);
-    $("#playerLosses").text("Losses: " + lossNumber);
-    $("#playerWinRatio").text("Win Ratio: " + (winRatio * 100).toFixed(2) + "%");
-}
+let BLURB_TBL = [
+    'No win!',
+    'Good!',
+    'Excellent!',
+    'JACKPOT!'
+];
 
-/* Utility function to reset all fruit tallies */
-function resetFruitTally() {
-    grapes = 0;
-    bananas = 0;
-    oranges = 0;
-    cherries = 0;
-    bars = 0;
-    bells = 0;
-    sevens = 0;
-    blanks = 0;
-}
+function shuffleArray( array ) {
 
-/* Utility function to reset the player stats */
-function resetAll() {
-    playerMoney = 1000;
-    winnings = 0;
-    jackpot = 5000;
-    turn = 0;
-    playerBet = 0;
-    winNumber = 0;
-    lossNumber = 0;
-    winRatio = 0;
-}
-
-
-/* Check to see if the player won the jackpot */
-function checkJackPot() {
-    /* compare two random values */
-    let jackPotTry = Math.floor(Math.random() * 51 + 1);
-    let jackPotWin = Math.floor(Math.random() * 51 + 1);
-    if (jackPotTry == jackPotWin) {
-        alert("You Won the $" + jackpot + " Jackpot!!");
-        playerMoney += jackpot;
-        jackpot = 1000;
+    for (i = array.length - 1; i > 0; i--) {
+	let j = parseInt(Math.random() * i)
+	let tmp = array[i];
+	array[i] = array[j]
+	array[j] = tmp;
     }
 }
 
-/* Utility function to show a win message and increase player money */
-function showWinMessage() {
-    playerMoney += winnings;
-    $("div#winOrLose>p").text("You Won: $" + winnings);
-    resetFruitTally();
-    checkJackPot();
+// Images must be preloaded before they are used to draw into canvas
+function preloadImages( images, callback ) {
+
+    function _preload( asset ) {
+	asset.img = new Image();
+	asset.img.src = 'img/' + asset.id+'.png';
+
+	asset.img.addEventListener("load", function() {
+	    _check();
+	}, false);
+
+	asset.img.addEventListener("error", function(err) {
+	    _check(err, asset.id);
+	}, false);
+    }
+
+    let loadc = 0;
+    function _check( err, id ) {
+	if ( err ) {
+	    alert('Failed to load ' + id );
+	}
+	loadc++;
+	if ( images.length == loadc ) 
+	    return callback()
+    }
+
+    images.forEach(function(asset) {
+	_preload( asset );
+    });
 }
 
-/* Utility function to show a loss message and reduce player money */
-function showLossMessage() {
-    playerMoney -= playerBet;
-    $("div#winOrLose>p").text("You Lost!");
-    resetFruitTally();
+function copyArray( array ) {
+    let copy = [];
+    for( let i = 0 ; i < array.length; i++) {
+	copy.push( array[i] );
+    }
+    return copy;
 }
 
-/* Utility function to check if a value falls within a range of bounds */
-function checkRange(value, lowerBounds, upperBounds) {
-    if (value >= lowerBounds && value <= upperBounds)
-    {
-        return value;
-    }
-    else {
-        return !value;
-    }
+
+function SlotGame() {
+
+    let game = new Game();
+
+    let items = [ 
+	{id: 'energy-64'},
+	{id: 'staff-64'},
+	{id: 'cash-64'},
+	{id: 'build-64'},
+	{id: 'goods-64'},
+	{id: 'gold-64'}
+    ];
+
+    $('canvas').attr('height', IMAGE_HEIGHT * ITEM_COUNT * 2);
+    $('canvas').css('height', IMAGE_HEIGHT * ITEM_COUNT * 2);
+
+    game.items = items;
+
+    // load assets and predraw the reel canvases
+    preloadImages( items, function() {
+
+	// images are preloaded
+
+	// draws canvas strip
+	function _fill_canvas( canvas, items ) {
+	    ctx = canvas.getContext('2d');
+	    ctx.fillStyle = '#ddd';
+
+	    for (let i = 0 ; i < ITEM_COUNT ; i++) {
+		let asset = items[i];
+		ctx.save();
+		ctx.shadowColor = "rgba(0,0,0,0.5)";
+		ctx.shadowOffsetX = 5;
+		ctx.shadowOffsetY = 5;
+		ctx.shadowBlur = 5;
+		ctx.drawImage(asset.img, 3, i * SLOT_HEIGHT + IMAGE_TOP_MARGIN);
+		ctx.drawImage(asset.img, 3, (i + ITEM_COUNT) * SLOT_HEIGHT + IMAGE_TOP_MARGIN);
+		ctx.restore();
+		ctx.fillRect(0, i * SLOT_HEIGHT, 70, SLOT_SEPARATOR_HEIGHT);
+		ctx.fillRect(0, (i + ITEM_COUNT)  * SLOT_HEIGHT, 70, SLOT_SEPARATOR_HEIGHT);
+	    }
+	}
+	// Draw the canvases with shuffled arrays
+	game.items1 = copyArray(items);
+	shuffleArray(game.items1);
+	_fill_canvas( game.c1[0], game.items1 );
+	game.items2 = copyArray(items);
+	shuffleArray(game.items2);
+	_fill_canvas( game.c2[0], game.items2 );
+	game.items3 = copyArray(items);
+	shuffleArray(game.items3);
+	_fill_canvas( game.c3[0], game.items3 );
+	game.resetOffset =  (ITEM_COUNT + 3) * SLOT_HEIGHT;
+	game.loop();
+    });
+
+    $('#play').click(function(e) {
+	// start game on play button click
+	$('h1').text('Rolling!');
+	game.restart();
+    });
+
+    // Show reels for debugging
+   /*  let toggleReels = 1;
+    $('#debug').click(function() {
+	toggleReels = 1 - toggleReels;
+	if ( toggleReels ) {
+	    $('#reels').css('overflow', 'hidden' );
+	} else {
+	    $('#reels').css('overflow', 'visible' );
+	}
+    }); */
+	
+	$('#restart').click(function() {
+		location.reload();
+	
+	
+    });
 }
 
-/* When this function is called it determines the betLine results.
-e.g. Bar - Orange - Banana */
-function Reels() {
-    let betLine = [" ", " ", " "];
-    let outCome = [0, 0, 0];
+function Game() {
 
-    for (let spin = 0; spin < 3; spin++) {
-        outCome[spin] = Math.floor((Math.random() * 65) + 1);
-        switch (outCome[spin]) {
-            case checkRange(outCome[spin], 1, 27):  // 41.5% probability
-                betLine[spin] = "blank";
-                blanks++;
-                break;
-            case checkRange(outCome[spin], 28, 37): // 15.4% probability
-                betLine[spin] = "Grapes";
-                grapes++;
-                break;
-            case checkRange(outCome[spin], 38, 46): // 13.8% probability
-                betLine[spin] = "Banana";
-                bananas++;
-                break;
-            case checkRange(outCome[spin], 47, 54): // 12.3% probability
-                betLine[spin] = "Orange";
-                oranges++;
-                break;
-            case checkRange(outCome[spin], 55, 59): //  7.7% probability
-                betLine[spin] = "Cherry";
-                cherries++;
-                break;
-            case checkRange(outCome[spin], 60, 62): //  4.6% probability
-                betLine[spin] = "Bar";
-                bars++;
-                break;
-            case checkRange(outCome[spin], 63, 64): //  3.1% probability
-                betLine[spin] = "Bell";
-                bells++;
-                break;
-            case checkRange(outCome[spin], 65, 65): //  1.5% probability
-                betLine[spin] = "Seven";
-                sevens++;
-                break;
-        }
-    }
-    return betLine;
-}
+    // reel canvases
+    this.c1 = $('#canvas1');
+    this.c2 = $('#canvas2');
+    this.c3 = $('#canvas3');
 
-/* This function calculates the player's winnings, if any */
-function determineWinnings()
-{
-    if (blanks == 0)
-    {
-        if (grapes == 3) {
-            winnings = playerBet * 10;
-        }
-        else if(bananas == 3) {
-            winnings = playerBet * 20;
-        }
-        else if (oranges == 3) {
-            winnings = playerBet * 30;
-        }
-        else if (cherries == 3) {
-            winnings = playerBet * 40;
-        }
-        else if (bars == 3) {
-            winnings = playerBet * 50;
-        }
-        else if (bells == 3) {
-            winnings = playerBet * 75;
-        }
-        else if (sevens == 3) {
-            winnings = playerBet * 100;
-        }
-        else if (grapes == 2) {
-            winnings = playerBet * 2;
-        }
-        else if (bananas == 2) {
-            winnings = playerBet * 2;
-        }
-        else if (oranges == 2) {
-            winnings = playerBet * 3;
-        }
-        else if (cherries == 2) {
-            winnings = playerBet * 4;
-        }
-        else if (bars == 2) {
-            winnings = playerBet * 5;
-        }
-        else if (bells == 2) {
-            winnings = playerBet * 10;
-        }
-        else if (sevens == 2) {
-            winnings = playerBet * 20;
-        }
-        else if (sevens == 1) {
-            winnings = playerBet * 5;
-        }
-        else {
-            winnings = playerBet * 1;
-        }
-        winNumber++;
-        showWinMessage();
-    }
-    else
-    {
-        lossNumber++;
-        showLossMessage();
-    }
+    // set random canvas offsets
+    this.offset1 = -parseInt(Math.random() * ITEM_COUNT ) * SLOT_HEIGHT;
+    this.offset2 = -parseInt(Math.random() * ITEM_COUNT ) * SLOT_HEIGHT;
+    this.offset3 = -parseInt(Math.random() * ITEM_COUNT ) * SLOT_HEIGHT;
+    this.speed1 = this.speed2 = this.speed3 = 0;
+    this.lastUpdate = new Date();
+
+    // Needed for CSS translates
+    this.vendor = 
+	(/webkit/i).test(navigator.appVersion) ? '-webkit' :
+    	(/firefox/i).test(navigator.userAgent) ? '-moz' :
+	(/msie/i).test(navigator.userAgent) ? 'ms' :
+    	'opera' in window ? '-o' : '';
     
+    this.cssTransform = this.vendor + '-transform';
+    this.has3d = ('WebKitCSSMatrix' in window && 'm11' in new WebKitCSSMatrix())  
+    this.trnOpen       = 'translate' + (this.has3d ? '3d(' : '(');
+    this.trnClose      = this.has3d ? ',0)' : ')';
+    this.scaleOpen     = 'scale' + (this.has3d ? '3d(' : '(');
+    this.scaleClose    = this.has3d ? ',0)' : ')';
+
+    // draw the slots to initial locations
+    this.draw( true );
 }
 
-/* When the player clicks the spin button the game kicks off */
-$("#spinButton").click(function () {
-    playerBet = $("div#betEntry>input").val();
+// Restar the game and determine the stopping locations for reels
+Game.prototype.restart = function() {
+    this.lastUpdate = new Date();
+    this.speed1 = this.speed2 = this.speed3 = SLOT_SPEED
 
-    if (playerMoney == 0)
-    {
-        if (confirm("You ran out of Money! \nDo you want to play again?")) {
-            resetAll();
-            showPlayerStats();
-        }
+    // function locates id from items
+    function _find( items, id ) {
+	for ( let i=0; i < items.length; i++ ) {
+	    if ( items[i].id == id ) return i;
+	}
     }
-    else if (playerBet > playerMoney) {
-        alert("You don't have enough Money to place that bet.");
+
+    // uncomment to get always jackpot
+    //this.result1 = _find( this.items1, 'gold-64' );
+    //this.result2 = _find( this.items2, 'gold-64' );
+    //this.result3 = _find( this.items3, 'gold-64' );
+
+    // get random results
+    this.result1 = parseInt(Math.random() * this.items1.length)
+    this.result2 = parseInt(Math.random() * this.items2.length)
+    this.result3 = parseInt(Math.random() * this.items3.length)
+
+    // Clear stop locations
+    this.stopped1 = false;
+    this.stopped2 = false;
+    this.stopped3 = false;
+
+    // randomize reel locations
+    this.offset1 = -parseInt(Math.random( ITEM_COUNT )) * SLOT_HEIGHT;
+    this.offset2 = -parseInt(Math.random( ITEM_COUNT )) * SLOT_HEIGHT;
+    this.offset3 = -parseInt(Math.random( ITEM_COUNT )) * SLOT_HEIGHT;
+
+    $('#results').hide();
+
+    this.state = 1;
+}
+
+window.requestAnimFrame = (function(){
+    return window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.oRequestAnimationFrame ||
+        window.msRequestAnimationFrame ||
+        function(/* function */ callback, /* DOMElement */ element){
+            window.setTimeout(callback, 1000 / 60);
+        };
+})();
+
+Game.prototype.loop = function() {
+    let that = this;
+    that.running = true;
+    (function gameLoop() {
+	that.update();
+	that.draw();
+	if (that.running) {
+	    requestAnimFrame( gameLoop );
+	}
+    })();
+}
+
+Game.prototype.update = function() {
+
+    let now = new Date();
+    let that = this;
+
+    // Check slot status and if spun long enough stop it on result
+    function _check_slot( offset, result ) {
+	if ( now - that.lastUpdate > SPINTIME ) {
+	    let c = parseInt(Math.abs( offset / SLOT_HEIGHT)) % ITEM_COUNT;
+	    if ( c == result ) {
+		if ( result == 0 ) {
+		    if ( Math.abs(offset + (ITEM_COUNT * SLOT_HEIGHT)) < (SLOT_SPEED * 1.5)) {
+			return true; // done
+		    }
+		} else if ( Math.abs(offset + (result * SLOT_HEIGHT)) < (SLOT_SPEED * 1.5)) {
+		    return true; // done
+		}
+	    }
+	}
+	return false;
     }
-    else if (playerBet < 0) {
-        alert("All bets must be a positive $ amount.");
+
+    switch (this.state) {
+    case 1: // all slots spinning
+	if (now - this.lastUpdate > RUNTIME) {
+	    this.state = 2;
+	    this.lastUpdate = now;
+	}
+	break;
+    case 2: // slot 1
+	this.stopped1 = _check_slot( this.offset1, this.result1 );
+	if ( this.stopped1 ) {
+	    this.speed1 = 0;
+	    this.state++;
+	    this.lastUpdate = now;
+	}
+	break;
+    case 3: // slot 1 stopped, slot 2
+	this.stopped2 = _check_slot( this.offset2, this.result2 );
+	if ( this.stopped2 ) {
+	    this.speed2 = 0;
+	    this.state++;
+	    this.lastUpdate = now;
+	}
+	break;
+    case 4: // slot 2 stopped, slot 3
+	this.stopped3 = _check_slot( this.offset3, this.result3 );
+	if ( this.stopped3 ) {
+	    this.speed3 = 0;
+	    this.state++;
+	}
+	break;
+    case 5: // slots stopped 
+	if ( now - this.lastUpdate > 3000 ) {
+	    this.state = 6;
+	}
+	break;
+    case 6: // check results
+	let ec = 0;
+
+	$('#results').show();
+	if (that.items1[that.result1].id == 'gold-64') {
+	    ec++;
+	}
+	if (that.items2[that.result2].id == 'gold-64') {
+	    ec++;
+	}
+	if (that.items3[that.result3].id == 'gold-64') {
+	    ec++;
+	}
+	$('#multiplier').text(ec);
+
+	$('#status').text(BLURB_TBL[ec]);
+
+	this.state = 7;
+	break;
+    case 7: // game ends
+	break;
+    default:
     }
-    else if (playerBet <= playerMoney) {
-        spinResult = Reels();
-        fruits = spinResult[0] + " - " + spinResult[1] + " - " + spinResult[2];
-        $("div#result>p").text(fruits);
-        determineWinnings();
-        turn++;
-        showPlayerStats();
+    this.lastupdate = now;
+}
+
+Game.prototype.draw = function( force ) {
+
+    if (this.state >= 6 ) return;
+
+    // draw the spinning slots based on current state
+    for (let i=1; i <= 3; i++ ) {
+	let resultp = 'result'+i;
+	let stopped = 'stopped'+i;
+	let speedp = 'speed'+i;
+	let offsetp = 'offset'+i;
+	let cp = 'c'+i;
+	if (this[stopped] || this[speedp] || force) {
+	    if (this[stopped]) {
+		this[speedp] = 0;
+		let c = this[resultp]; // get stop location
+		this[offsetp] = -(c * SLOT_HEIGHT);
+
+		if (this[offsetp] + DRAW_OFFSET > 0) {
+		    // reset back to beginning
+		    this[offsetp] = -this.resetOffset + SLOT_HEIGHT * 3;
+		}
+
+	    } else {
+		this[offsetp] += this[speedp];
+		if (this[offsetp] + DRAW_OFFSET > 0) {
+		    // reset back to beginning
+		    this[offsetp] = -this.resetOffset + SLOT_HEIGHT * 3 - DRAW_OFFSET;
+		}
+	    }
+	    // translate canvas location
+	    this[cp].css(this.cssTransform, this.trnOpen + '0px, '+(this[offsetp] + DRAW_OFFSET)+'px' + this.trnClose);
+	}
     }
-    else {
-        alert("Please enter a valid bet amount");
-    }
-    
-});
+}

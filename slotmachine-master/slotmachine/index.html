@@ -1,54 +1,27 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-
-  <meta name="interface" content="desktop" />
-
-  <title>Slot Machine</title>
-
-  <link href='http://fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'/>
-  <link type="text/css" rel="stylesheet" href="css/reset.css" />
-  <link type="text/css" rel="stylesheet" href="css/slot.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>COMP125 - M2020 - Slot Machine</title>
+  <!--CSS Section-->
+  <link rel="stylesheet" href="./css/main.css">
 </head>
-<body>
-    <div id="viewport">
-        <div id="container">
-          <div id="header">
-        <h1>Slot Machine</h1>
-        <h3>Play and Win</h3>
-          </div>
-          <div id="reels">
-        <canvas id="canvas1" width="70" height="300"></canvas>
-        <canvas id="canvas2" width="70" height="300"></canvas>
-        <canvas id="canvas3" width="70" height="300"></canvas>
-        <div id="overlay">
-          <div id="winline"></div>
-        </div>
-        <div id="results">
-          <div id="score">
-            <span id="multiplier">0</span> x <img src="img/gold-64.png"/>
-          </div>
-          <div id="status"></div>
-        </div>
-          </div>
-          <div id="buttons">
-          <div id="play" class="button button-default">Play</div>	
-          </div>
-         <div class="">
-         <button id="restart" class="button button-default bottom_btn">Restart</button>
-         <!-- <button class="button button-default bottom_btn1">Quit</button> -->
-         </div>
-        </div>
-    
-      </div>
-
-
-    <!-- JavaScript Section -->
-    <script src="js/jquery.js"></script>
-    <script src="js/main.js"></script>
+<body onload="toggleAudio()">
+  <main>
+    <section id="status">WELCOME!</section>
+    <section id="Slots">
+      <div id="slot1" class="a1"></div>
+      <div id="slot2" class="a1"></div>
+      <div id="slot3" class="a1"></div>
+    </section>
+    <section onclick="doSlot()" id="Gira">TAKE A SPIN!</section>
+    <section id="options">
+      <img src="./icons/audioOn.png" id="audio" class="option" onclick="toggleAudio()" />
+    </section>
+  </main>
+  <!--Javascript Section-->
+  <script src="./Scripts/main.js"></script>
+  <script src="./Scripts/jquery.js"></script>
 </body>
 </html>
